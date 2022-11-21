@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Segment
+import SegmentOptimizelyFullStack
 
 @main
 struct BasicExampleApp: App {
@@ -19,10 +20,12 @@ struct BasicExampleApp: App {
 
 extension Analytics {
     static var main: Analytics {
-        let analytics = Analytics(configuration: Configuration(writeKey: "<YOUR WRITE KEY>")
+        let analytics = Analytics(configuration: Configuration(writeKey: "1Y90gFG3fBWv33PsE5piliJjF6xIOVmV")
                     .flushAt(3)
                     .trackApplicationLifecycleEvents(true))
-        //analytics.add(plugin: <Destination>())
+        analytics.add(plugin: OptimizelyFullStack())
+        debugPrint("analytics settings", analytics.settings()?.toString())
+        
         return analytics
     }
 }

@@ -1,0 +1,34 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Segment",
+        "repositoryURL": "https://github.com/segmentio/analytics-swift",
+        "state": {
+          "branch": "main",
+          "revision": "36a1546a8db03ce1a3d768e76fd5ce961e2879e3",
+          "version": null
+        }
+      },
+      {
+        "package": "Sovran",
+        "repositoryURL": "https://github.com/segmentio/Sovran-Swift.git",
+        "state": {
+          "branch": null,
+          "revision": "944c17d7c46bd95fc37f09136cabd172be5b413b",
+          "version": "1.0.3"
+        }
+      },
+      {
+        "package": "Optimizely",
+        "repositoryURL": "https://github.com/optimizely/swift-sdk.git",
+        "state": {
+          "branch": null,
+          "revision": "193cc00e1004d29f16f7b32e5b6787199760c482",
+          "version": "3.10.1"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

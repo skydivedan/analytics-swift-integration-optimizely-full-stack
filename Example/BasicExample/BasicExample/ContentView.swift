@@ -13,7 +13,7 @@ struct ContentView: View {
         VStack {
             HStack {
                 Button(action: {
-                    Analytics.main.track(name: "Track")
+                    Analytics.main.track(name: "testiOS")
                 }, label: {
                     Text("Track")
                 }).padding(6)
@@ -31,13 +31,13 @@ struct ContentView: View {
                     Text("Group")
                 }).padding(6)
                 Button(action: {
-                    Analytics.main.identify(userId: "X-1234567890")
+                    Analytics.main.identify(userId: "22556890344")
                 }, label: {
                     Text("Identify")
                 }).padding(6)
             }.padding(8)
         }.onAppear {
-            Analytics.main.track(name: "onAppear")
+            Analytics.main.track(name: "BE onAppear")
             print("Executed Analytics onAppear()")
         }.onDisappear {
             Analytics.main.track(name: "onDisappear")
