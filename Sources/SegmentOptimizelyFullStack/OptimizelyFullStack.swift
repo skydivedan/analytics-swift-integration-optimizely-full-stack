@@ -93,48 +93,23 @@ public class OptimizelyFullStack: DestinationPlugin {
         
         _ = notificationCenter.addDatafileChangeNotificationListener(datafileListener: { _ in
             print("Datafile changed")
-//            DispatchQueue.main.async {
-//                #if os(iOS)
-//                if let controller = self.window?.rootViewController {
-//                    let alert = UIAlertController(title: "Datafile Changed", message: nil, preferredStyle: .alert)
-//                    alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default))
-//                    controller.present(alert, animated: true)
-//                }
-//                #else
-//                print("Datafile changed")
-//                #endif
-//                if let controller = self.window?.rootViewController as? VariationViewController {
-//                    let decision = self.user.decide(key: "show_coupon")
-//                    controller.showCoupon = decision.enabled
-//                }
 
             if let optConfig = try? self.optimizelyClient.getOptimizelyConfig() {
                 print("[OptimizelyConfig] revision = \(optConfig.revision)")
             }
         })
         
-//        guard let listen = settings.integrations?.dictionaryValue?["listen"] as? Bool else{
-//            return
-//        }
-//        if listen{
-//            NotificationCenter.default.addObserver(
-//                self,
-//                selector: #selector(self.experimentDidGetViewed),
-//                name: Notification.Name("OptimizelyExperimentActivated"),
-//                object: nil)
-//        }
-    
         
         _ = optimizelyClient.notificationCenter?.addActivateNotificationListener(activateListener: { experiment, userId, attributes, variation, event in
             print("experiment", experiment)
             print("variation", variation)
-            let prop = ["experimentId": experiment["experimentId"],
-                        "experimentName": experiment["experimentKey"],
-                        "variationId": variation["variationId"],
-                        "variationName": variation["variationKey"]
+            let properties: [String: Any] = ["experimentId": experiment["experimentId"] ?? "",
+                        "experimentName": experiment["experimentKey"] ?? "",
+                        "variationId": variation["variationId"] ?? "",
+                        "variationName": variation["variationKey"] ?? ""
                         
             ]
-            self.analytics?.track(name: "Experiment Viewed", properties: prop)
+            self.analytics?.track(name: "Experiment Viewed", properties: properties)
         })
 
     }

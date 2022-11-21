@@ -24,8 +24,6 @@ extension Analytics {
                     .flushAt(3)
                     .trackApplicationLifecycleEvents(true))
         analytics.add(plugin: OptimizelyFullStack())
-        debugPrint("analytics settings", analytics.settings()?.toString())
-        
         return analytics
     }
 }

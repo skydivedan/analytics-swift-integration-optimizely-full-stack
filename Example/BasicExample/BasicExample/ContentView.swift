@@ -13,7 +13,7 @@ struct ContentView: View {
         VStack {
             HStack {
                 Button(action: {
-                    Analytics.main.track(name: "testiOS")
+                    Analytics.main.track(name: "Tracked testiOS")
                 }, label: {
                     Text("Track")
                 }).padding(6)
@@ -37,7 +37,7 @@ struct ContentView: View {
                 }).padding(6)
             }.padding(8)
         }.onAppear {
-            Analytics.main.track(name: "BE onAppear")
+            Analytics.main.track(name: "onAppear")
             print("Executed Analytics onAppear()")
         }.onDisappear {
             Analytics.main.track(name: "onDisappear")
