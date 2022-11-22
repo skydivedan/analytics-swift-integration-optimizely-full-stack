@@ -55,17 +55,18 @@ public class OptimizelyFullStack: DestinationPlugin {
     public func update(settings: Settings, type: UpdateType) {
         // Skip if you have a singleton and don't want to keep updating via settings.
         guard type == .initial else { return }
-   
+        
         guard let tempSettings: OptimizelySettings = settings.integrationSettings(forPlugin: self) else { return }
+        
         optimizelySettings = tempSettings
     
         initializeOptimizelySDKAsynchronous()
+
                 
     }
     
     private func initializeOptimizelySDKAsynchronous() {
         optimizelyClient = OptimizelyClient(sdkKey: optimizelySettings?.apiKey ?? "", defaultLogLevel: defaultLogLevel)
-        debugPrint("optimizelySettings", optimizelySettings?.apiKey ?? "")
         
         addNotificationListeners()
         
@@ -98,11 +99,9 @@ public class OptimizelyFullStack: DestinationPlugin {
                 print("[OptimizelyConfig] revision = \(optConfig.revision)")
             }
         })
-        
+
         
         _ = optimizelyClient.notificationCenter?.addActivateNotificationListener(activateListener: { experiment, userId, attributes, variation, event in
-            print("experiment", experiment)
-            print("variation", variation)
             let properties: [String: Any] = ["experimentId": experiment["experimentId"] ?? "",
                         "experimentName": experiment["experimentKey"] ?? "",
                         "variationId": variation["variationId"] ?? "",
