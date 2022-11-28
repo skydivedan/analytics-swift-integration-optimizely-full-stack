@@ -40,16 +40,17 @@ import Optimizely
 public class OptimizelyFullStack: DestinationPlugin {
     public let timeline = Timeline()
     public let type = PluginType.destination
-    public let key = "OptimizelyFullStack"
+    public let key = "Optimizely X"
     public var analytics: Analytics? = nil
-
+    
     private var optimizelySettings: OptimizelySettings?
     
-    var optimizelyClient: OptimizelyClient!
-    var userId: String!
-    var userTraits: [String: Any]!
-    let defaultLogLevel: OptimizelyLogLevel? = .debug
-        
+    private var optimizelyClient: OptimizelyClient!
+    private var userAttributes: [String: Any]!
+    private let defaultLogLevel: OptimizelyLogLevel? = .debug
+    private let sdkApiKey = "8i8Jv5NVAEVcGa8JnFJzH"
+    private var userContext: OptimizelyUserContext!
+    
     public init() { }
     
     public func update(settings: Settings, type: UpdateType) {
@@ -59,14 +60,16 @@ public class OptimizelyFullStack: DestinationPlugin {
         guard let tempSettings: OptimizelySettings = settings.integrationSettings(forPlugin: self) else { return }
         
         optimizelySettings = tempSettings
-    
+        
         initializeOptimizelySDKAsynchronous()
-
-                
+        
     }
     
     private func initializeOptimizelySDKAsynchronous() {
-        optimizelyClient = OptimizelyClient(sdkKey: optimizelySettings?.apiKey ?? "", defaultLogLevel: defaultLogLevel)
+        
+        optimizelyClient = OptimizelyClient(sdkKey: sdkApiKey, defaultLogLevel: defaultLogLevel)
+        
+        userAttributes = ["logged_in": true]
         
         addNotificationListeners()
         
@@ -79,6 +82,7 @@ public class OptimizelyFullStack: DestinationPlugin {
             }
         }
     }
+    
     
     func addNotificationListeners() {
         // notification listeners
@@ -94,84 +98,76 @@ public class OptimizelyFullStack: DestinationPlugin {
         
         _ = notificationCenter.addDatafileChangeNotificationListener(datafileListener: { _ in
             print("Datafile changed")
-
+            
             if let optConfig = try? self.optimizelyClient.getOptimizelyConfig() {
                 print("[OptimizelyConfig] revision = \(optConfig.revision)")
             }
         })
-
         
-        _ = optimizelyClient.notificationCenter?.addActivateNotificationListener(activateListener: { experiment, userId, attributes, variation, event in
+        _ = notificationCenter.addActivateNotificationListener(activateListener: { experiment, userId, attributes, variation, event in
             let properties: [String: Any] = ["experimentId": experiment["experimentId"] ?? "",
-                        "experimentName": experiment["experimentKey"] ?? "",
-                        "variationId": variation["variationId"] ?? "",
-                        "variationName": variation["variationKey"] ?? ""
-                        
+                                             "experimentName": experiment["experimentKey"] ?? "",
+                                             "variationId": variation["variationId"] ?? "",
+                                             "variationName": variation["variationKey"] ?? ""
+                                             
             ]
             self.analytics?.track(name: "Experiment Viewed", properties: properties)
         })
-
+    
+        
     }
     
     public func identify(event: IdentifyEvent) -> IdentifyEvent? {
         
-        if let userProp = event.traits?.dictionaryValue {
-            userTraits = userProp
-        }
-        
         if let currentUserId = event.userId {
-            userId = currentUserId
+            userContext = optimizelyClient.createUserContext(userId: currentUserId, attributes: userAttributes)
         }
         return event
     }
+    
     
     public func track(event: TrackEvent) -> TrackEvent? {
         
         let returnEvent = event
         let trackKnownUsers = optimizelySettings?.trackKnownUsers
-        if userId == nil && (trackKnownUsers != nil && trackKnownUsers == true) {
+        var userID = event.userId
+        
+        if event.userId == nil && (trackKnownUsers != nil && trackKnownUsers == true) {
             print("Segment will only track users associated with a userId when the trackKnownUsers setting is enabled.")
         }
         
-        if trackKnownUsers == true {
-            if userTraits != nil {
-                do {
-                    try optimizelyClient.track(eventKey: returnEvent.event,
-                                                userId: userId,
-                                                attributes: userTraits,
-                                               eventTags: event.properties?.dictionaryValue)
-                    print("[track]")
-                } catch {
-                    print(error)
-                }
+        if trackKnownUsers == false {
+            userID = event.anonymousId
+        }
+        
+        if let userID = userID {
+            debugPrint("userID", userID)
+            userContext = optimizelyClient.createUserContext(userId: "UseriOS123", attributes: userAttributes)
+            trackUser(trackEvent: event)
+        }
                 
-            }
-            else {
-                try? optimizelyClient.track(eventKey: returnEvent.event,
-                                       userId: userId,
-                                       eventTags: event.properties?.dictionaryValue)
-            }
-        }
-        
-        if let anonymousId = returnEvent.anonymousId, anonymousId.count > 0 {
-            if (trackKnownUsers == false && userTraits != nil) {
-                do {
-                    try optimizelyClient.track(eventKey: returnEvent.event,
-                                                userId: anonymousId,
-                                                attributes: userTraits,
-                                               eventTags: event.properties?.dictionaryValue)
-                    print("track anonymousUser")
-                } catch {
-                    print(error)
-                }
-            } else {
-                try? optimizelyClient.track(eventKey: returnEvent.event,
-                                       userId: userId,
-                                       eventTags: event.properties?.dictionaryValue)
-            }
-        }
-        
         return returnEvent
+    }
+    
+    private func trackUser(trackEvent: TrackEvent) {
+        if let eventTags = trackEvent.properties?.dictionaryValue {
+            do {
+                try userContext.trackEvent(eventKey: trackEvent.event,
+                                           eventTags: eventTags)
+                print("Tracked with eventTags!", eventTags)
+            } catch {
+                print(error)
+            }
+        }
+        else {
+            do {
+                try userContext.trackEvent(eventKey: trackEvent.event)
+                print("Tracked with Event Only!")
+            } catch {
+                print(error)
+            }
+        }
+              
     }
     
     public func reset() {
@@ -182,10 +178,6 @@ public class OptimizelyFullStack: DestinationPlugin {
             optimizelyClient.notificationCenter?.clearAllNotificationListeners()
         }
     }
-    
-    @objc private func experimentDidGetViewed(notification: NSNotification){
-        
-    }
 }
 
 extension OptimizelyFullStack: VersionedPlugin {
@@ -195,7 +187,6 @@ extension OptimizelyFullStack: VersionedPlugin {
 }
 
 private struct OptimizelySettings: Codable {
-    let apiKey: String
     let periodicDownloadInterval: Int?
     let trackKnownUsers: Bool
 }
