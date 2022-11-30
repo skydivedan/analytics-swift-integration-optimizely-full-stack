@@ -46,12 +46,11 @@ public class OptimizelyFullStack: DestinationPlugin {
     private var optimizelySettings: OptimizelySettings?
     
     private var optimizelyClient: OptimizelyClient!
-    private var userAttributes: [String: Any]!
-    private let defaultLogLevel: OptimizelyLogLevel? = .debug
-    private let sdkApiKey = "8i8Jv5NVAEVcGa8JnFJzH"
     private var userContext: OptimizelyUserContext!
     
-    public init() { }
+    public init(sdkApiKey: String) {
+        optimizelyClient = OptimizelyClient(sdkKey: sdkApiKey, defaultLogLevel: .debug)
+    }
     
     public func update(settings: Settings, type: UpdateType) {
         // Skip if you have a singleton and don't want to keep updating via settings.
@@ -62,15 +61,10 @@ public class OptimizelyFullStack: DestinationPlugin {
         optimizelySettings = tempSettings
         
         initializeOptimizelySDKAsynchronous()
-        
     }
     
     private func initializeOptimizelySDKAsynchronous() {
-        
-        optimizelyClient = OptimizelyClient(sdkKey: sdkApiKey, defaultLogLevel: defaultLogLevel)
-        
-        userAttributes = ["logged_in": true]
-        
+                        
         addNotificationListeners()
         
         optimizelyClient.start { result in
@@ -104,23 +98,12 @@ public class OptimizelyFullStack: DestinationPlugin {
             }
         })
         
-        _ = notificationCenter.addActivateNotificationListener(activateListener: { experiment, userId, attributes, variation, event in
-            let properties: [String: Any] = ["experimentId": experiment["experimentId"] ?? "",
-                                             "experimentName": experiment["experimentKey"] ?? "",
-                                             "variationId": variation["variationId"] ?? "",
-                                             "variationName": variation["variationKey"] ?? ""
-                                             
-            ]
-            self.analytics?.track(name: "Experiment Viewed", properties: properties)
-        })
-    
-        
     }
     
     public func identify(event: IdentifyEvent) -> IdentifyEvent? {
         
         if let currentUserId = event.userId {
-            userContext = optimizelyClient.createUserContext(userId: currentUserId, attributes: userAttributes)
+            userContext = optimizelyClient.createUserContext(userId: currentUserId)
         }
         return event
     }
@@ -141,8 +124,7 @@ public class OptimizelyFullStack: DestinationPlugin {
         }
         
         if let userID = userID {
-            debugPrint("userID", userID)
-            userContext = optimizelyClient.createUserContext(userId: "UseriOS123", attributes: userAttributes)
+            userContext = optimizelyClient.createUserContext(userId: userID)
             trackUser(trackEvent: event)
         }
                 
