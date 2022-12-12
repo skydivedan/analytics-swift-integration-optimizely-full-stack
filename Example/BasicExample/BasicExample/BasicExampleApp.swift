@@ -20,10 +20,10 @@ struct BasicExampleApp: App {
 
 extension Analytics {
     static var main: Analytics {
-        let analytics = Analytics(configuration: Configuration(writeKey: "<SDK KEY>")
+        let analytics = Analytics(configuration: Configuration(writeKey: "1Y90gFG3fBWv33PsE5piliJjF6xIOVmV")
                     .flushAt(3)
                     .trackApplicationLifecycleEvents(true))
-        analytics.add(plugin: OptimizelyFullStack(sdkApiKey: "<SDK KEY>"))
+        analytics.add(plugin: OptimizelyFullStack(sdkApiKey: "8i8Jv5NVAEVcGa8JnFJzH", experimentKey: "home_page_ui"))
         return analytics
     }
 }

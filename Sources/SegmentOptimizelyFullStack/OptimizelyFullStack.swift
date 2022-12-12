@@ -48,8 +48,11 @@ public class OptimizelyFullStack: DestinationPlugin {
     private var optimizelyClient: OptimizelyClient!
     private var userContext: OptimizelyUserContext!
     
-    public init(sdkApiKey: String) {
+    private var experimentationKey: String!
+    
+    public init(sdkApiKey: String, experimentKey: String) {
         optimizelyClient = OptimizelyClient(sdkKey: sdkApiKey, defaultLogLevel: .debug)
+        experimentationKey = experimentKey
     }
     
     public func update(settings: Settings, type: UpdateType) {
@@ -70,9 +73,10 @@ public class OptimizelyFullStack: DestinationPlugin {
         optimizelyClient.start { result in
             switch result {
             case .failure(let error):
-                print("Optimizely SDK initiliazation failed: \(error)")
+                self.analytics?.log(message: "Optimizely SDK initiliazation failed: \(error)")
             case .success:
-                print("Optimizely SDK initialized successfully!")
+                self.analytics?.log(message: "Optimizely SDK initialized successfully!")
+                
             }
         }
     }
@@ -84,6 +88,11 @@ public class OptimizelyFullStack: DestinationPlugin {
         
         _ = notificationCenter.addDecisionNotificationListener(decisionListener: { (type, userId, attributes, decisionInfo) in
             print("Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
+            let properties: [String: Any] = ["type": type,
+                                             "userId": userId,
+                                             "attributes": attributes ?? nil,
+                                             "decisionInfo": decisionInfo]
+            self.analytics?.track(name: "Experiment Viewed", properties: properties)
         })
         
         _ = notificationCenter.addTrackNotificationListener(trackListener: { (eventKey, userId, attributes, eventTags, event) in
@@ -97,13 +106,13 @@ public class OptimizelyFullStack: DestinationPlugin {
                 print("[OptimizelyConfig] revision = \(optConfig.revision)")
             }
         })
-        
     }
     
     public func identify(event: IdentifyEvent) -> IdentifyEvent? {
         
         if let currentUserId = event.userId {
             userContext = optimizelyClient.createUserContext(userId: currentUserId)
+            _ = userContext.decide(key: experimentationKey)
         }
         return event
     }
@@ -125,6 +134,7 @@ public class OptimizelyFullStack: DestinationPlugin {
         
         if let userID = userID {
             userContext = optimizelyClient.createUserContext(userId: userID)
+            _ = userContext.decide(key: experimentationKey)
             trackUser(trackEvent: event)
         }
                 
