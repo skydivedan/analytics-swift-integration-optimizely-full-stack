@@ -50,9 +50,11 @@ public class OptimizelyFullStack: DestinationPlugin {
     
     private var experimentationKey: String!
     
-    public init(sdkApiKey: String, experimentKey: String) {
+    public init(sdkApiKey: String, experimentKey: String? = nil) {
         optimizelyClient = OptimizelyClient(sdkKey: sdkApiKey, defaultLogLevel: .debug)
-        experimentationKey = experimentKey
+        if let experimentKey = experimentKey {
+            experimentationKey = experimentKey
+        }
     }
     
     public func update(settings: Settings, type: UpdateType) {
@@ -76,24 +78,25 @@ public class OptimizelyFullStack: DestinationPlugin {
                 self.analytics?.log(message: "Optimizely SDK initiliazation failed: \(error)")
             case .success:
                 self.analytics?.log(message: "Optimizely SDK initialized successfully!")
-                
             }
         }
     }
     
-    
-    func addNotificationListeners() {
+    private func addNotificationListeners() {
         // notification listeners
         let notificationCenter = optimizelyClient.notificationCenter!
         
-        _ = notificationCenter.addDecisionNotificationListener(decisionListener: { (type, userId, attributes, decisionInfo) in
-            print("Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
-            let properties: [String: Any] = ["type": type,
-                                             "userId": userId,
-                                             "attributes": attributes ?? nil,
-                                             "decisionInfo": decisionInfo]
-            self.analytics?.track(name: "Experiment Viewed", properties: properties)
-        })
+        if optimizelySettings?.listen == true {
+            _ = notificationCenter.addDecisionNotificationListener(decisionListener: { (type, userId, attributes, decisionInfo) in
+                print("Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
+                let properties: [String: Any] = ["type": type,
+                                                 "userId": userId,
+                                                 "attributes": attributes ?? [],
+                                                 "decisionInfo": decisionInfo]
+                
+                self.analytics?.track(name: "Experiment Viewed", properties: properties)
+            })
+        }
         
         _ = notificationCenter.addTrackNotificationListener(trackListener: { (eventKey, userId, attributes, eventTags, event) in
             print("Received track notification: \(eventKey) \(userId) \(String(describing: attributes)) \(String(describing: eventTags)) \(event)")
@@ -111,37 +114,39 @@ public class OptimizelyFullStack: DestinationPlugin {
     public func identify(event: IdentifyEvent) -> IdentifyEvent? {
         
         if let currentUserId = event.userId {
-            userContext = optimizelyClient.createUserContext(userId: currentUserId)
-            _ = userContext.decide(key: experimentationKey)
+            userContext = self.optimizelyClient.createUserContext(userId: currentUserId)
         }
+        
         return event
     }
     
-    
     public func track(event: TrackEvent) -> TrackEvent? {
         
-        let returnEvent = event
         let trackKnownUsers = optimizelySettings?.trackKnownUsers
-        var userID = event.userId
+        var userId = event.userId
         
-        if event.userId == nil && (trackKnownUsers != nil && trackKnownUsers == true) {
+        if userId == nil && (trackKnownUsers != nil && trackKnownUsers == true) {
             print("Segment will only track users associated with a userId when the trackKnownUsers setting is enabled.")
         }
         
         if trackKnownUsers == false {
-            userID = event.anonymousId
+            userId = event.anonymousId
         }
         
-        if let userID = userID {
+        if let userID = userId{
             userContext = optimizelyClient.createUserContext(userId: userID)
-            _ = userContext.decide(key: experimentationKey)
             trackUser(trackEvent: event)
+            
+            if event.event != "Experiment Viewed"{
+                _ = userContext.decide(key: experimentationKey)
+            }            
         }
-                
-        return returnEvent
+        
+        return event
     }
     
     private func trackUser(trackEvent: TrackEvent) {
+        
         if let eventTags = trackEvent.properties?.dictionaryValue {
             do {
                 try userContext.trackEvent(eventKey: trackEvent.event,
@@ -159,7 +164,6 @@ public class OptimizelyFullStack: DestinationPlugin {
                 print(error)
             }
         }
-              
     }
     
     public func reset() {
@@ -181,4 +185,5 @@ extension OptimizelyFullStack: VersionedPlugin {
 private struct OptimizelySettings: Codable {
     let periodicDownloadInterval: Int?
     let trackKnownUsers: Bool
+    let listen: Bool
 }
