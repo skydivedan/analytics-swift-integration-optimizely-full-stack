@@ -137,7 +137,7 @@ public class OptimizelyFullStack: DestinationPlugin {
             userContext = optimizelyClient.createUserContext(userId: userID)
             trackUser(trackEvent: event)
             
-            if event.event != "Experiment Viewed"{
+            if event.event != "Experiment Viewed" {
                 _ = userContext.decide(key: experimentationKey)
             }            
         }
