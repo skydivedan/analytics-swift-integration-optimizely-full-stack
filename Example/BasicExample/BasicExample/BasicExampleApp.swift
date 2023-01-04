@@ -23,7 +23,7 @@ extension Analytics {
         let analytics = Analytics(configuration: Configuration(writeKey: "<Segment Key>")
                     .flushAt(3)
                     .trackApplicationLifecycleEvents(true))
-        analytics.add(plugin: OptimizelyFullStack(sdkApiKey: "<Optimizely Production Key>"))
+        analytics.add(plugin: OptimizelyFullStack(optimizelyKey: "<Optimizely Production Key>"))
         return analytics
     }
 }
