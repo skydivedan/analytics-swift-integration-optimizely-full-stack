@@ -3,13 +3,6 @@
 //  OptimizelyFullStackDestination
 //
 //  Created by Komal Dhingra on 11/15/22.
-//
-
-// NOTE: You can see this plugin in use in the DestinationsExample application.
-//
-// This plugin is NOT SUPPORTED by Segment.  It is here merely as an example,
-// and for your convenience should you find it useful.
-//
 
 // MIT License
 //
@@ -44,21 +37,18 @@ public class OptimizelyFullStack: DestinationPlugin {
     public var analytics: Analytics? = nil
     
     private var optimizelySettings: OptimizelySettings?
-    
     private var optimizelyClient: OptimizelyClient!
     private var userContext: OptimizelyUserContext!
-    
     private var experimentationKey: String!
     
-    public init(sdkApiKey: String, experimentKey: String? = nil) {
-        optimizelyClient = OptimizelyClient(sdkKey: sdkApiKey, defaultLogLevel: .debug)
+    public init(optimizelyKey: String, experimentKey: String? = "") {
+        optimizelyClient = OptimizelyClient(sdkKey: optimizelyKey, defaultLogLevel: .debug)
         if let experimentKey = experimentKey {
             experimentationKey = experimentKey
         }
     }
     
     public func update(settings: Settings, type: UpdateType) {
-        // Skip if you have a singleton and don't want to keep updating via settings.
         guard type == .initial else { return }
         
         guard let tempSettings: OptimizelySettings = settings.integrationSettings(forPlugin: self) else { return }
