@@ -133,10 +133,12 @@ public class OptimizelyFullStack: DestinationPlugin {
             userId = event.anonymousId
         }
         
-        if let userID = userId{
+        if let userID = userId {
+            //create user context and then call track
             userContext = optimizelyClient.createUserContext(userId: userID)
             trackUser(trackEvent: event)
             
+            //To prevent loop of calling decide method, we are restricting it by below condition
             if event.event != "Experiment Viewed" {
                 _ = userContext.decide(key: experimentationKey)
             }            
