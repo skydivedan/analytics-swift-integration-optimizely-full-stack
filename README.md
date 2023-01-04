@@ -42,9 +42,8 @@ let analytics = Analytics(configuration: Configuration(writeKey: "<YOUR WRITE KE
                     .flushAt(3)
                     .trackApplicationLifecycleEvents(true))
 analytics.add(plugin: OptimizelyFullStack(optimizelyKey: "<Optimizely Production Key>"))
-
 ```
-Please Note: Here "optimizelyKey" you can get from Optimizely Dashboard Settings. You can use development or production SDK key respectively.
+Please Note : Here "optimizelyKey" you can get from Optimizely Dashboard Settings. You can use development or production SDK key respectively.
 
 Your events will now be given OptimizelyFullStack session data and start flowing to OptimizelyFullStack via Cloud Mode.
 
