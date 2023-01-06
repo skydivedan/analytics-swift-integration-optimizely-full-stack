@@ -78,7 +78,7 @@ public class OptimizelyFullStack: DestinationPlugin {
         
         if optimizelySettings?.listen == true {
             _ = notificationCenter.addDecisionNotificationListener(decisionListener: { (type, userId, attributes, decisionInfo) in
-                print("Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
+                self.analytics?.log(message: "Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
                 let properties: [String: Any] = ["type": type,
                                                  "userId": userId,
                                                  "attributes": attributes ?? [],
@@ -89,14 +89,13 @@ public class OptimizelyFullStack: DestinationPlugin {
         }
         
         _ = notificationCenter.addTrackNotificationListener(trackListener: { (eventKey, userId, attributes, eventTags, event) in
-            print("Received track notification: \(eventKey) \(userId) \(String(describing: attributes)) \(String(describing: eventTags)) \(event)")
+            self.analytics?.log(message: "Received track notification: \(eventKey) \(userId) \(String(describing: attributes)) \(String(describing: eventTags)) \(event)")
         })
         
         _ = notificationCenter.addDatafileChangeNotificationListener(datafileListener: { _ in
-            print("Datafile changed")
-            
+            self.analytics?.log(message: "Datafile changed")
             if let optConfig = try? self.optimizelyClient.getOptimizelyConfig() {
-                print("[OptimizelyConfig] revision = \(optConfig.revision)")
+                self.analytics?.log(message: "[OptimizelyConfig] revision = \(optConfig.revision)")
             }
         })
     }
@@ -116,7 +115,7 @@ public class OptimizelyFullStack: DestinationPlugin {
         var userId = event.userId
         
         if userId == nil && (trackKnownUsers != nil && trackKnownUsers == true) {
-            print("Segment will only track users associated with a userId when the trackKnownUsers setting is enabled.")
+            analytics?.log(message: "Segment will only track users associated with a userId when the trackKnownUsers setting is enabled.")
         }
         
         if trackKnownUsers == false {
@@ -143,17 +142,17 @@ public class OptimizelyFullStack: DestinationPlugin {
             do {
                 try userContext.trackEvent(eventKey: trackEvent.event,
                                            eventTags: eventTags)
-                print("Tracked with eventTags!", eventTags)
+                analytics?.log(message: "Tracked with eventTags - \(eventTags)")
             } catch {
-                print(error)
+                analytics?.log(message: "Error - \(error)")
             }
         }
         else {
             do {
                 try userContext.trackEvent(eventKey: trackEvent.event)
-                print("Tracked with Event Only!")
+                analytics?.log(message: "Tracked with event Only!")
             } catch {
-                print(error)
+                analytics?.log(message: "Error - \(error)")
             }
         }
     }

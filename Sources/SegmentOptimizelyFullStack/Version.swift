@@ -2,7 +2,7 @@
 //  Version.swift
 //  Segment
 //
-//  Created by Brandon Sneed on 2/24/2022.
+//  Created by Komal Dhingra on 11/16/22.
 //
 
 // DO NOT MODIFY THIS FILE BY HAND!!
@@ -13,4 +13,4 @@
 // Use release.sh's automation.
 
 // BREAKING.FEATURE.FIX
-internal let __destination_version = "1.1.2"
+internal let __destination_version = "1.0.0"
