@@ -21,7 +21,7 @@ Open your Package.swift file and add the following do your the `dependencies` se
 .package(
             name: "Segment",
             url: "https://github.com/segment-integrations/analytics-swift-integration-optimizely-full-stack.git",
-            from: "1.1.3"
+            from: "1.0.0"
         ),
 ```
 
