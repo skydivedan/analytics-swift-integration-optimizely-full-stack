@@ -3,13 +3,6 @@
 //  OptimizelyFullStackDestination
 //
 //  Created by Komal Dhingra on 11/15/22.
-//
-
-// NOTE: You can see this plugin in use in the DestinationsExample application.
-//
-// This plugin is NOT SUPPORTED by Segment.  It is here merely as an example,
-// and for your convenience should you find it useful.
-//
 
 // MIT License
 //
@@ -44,21 +37,18 @@ public class OptimizelyFullStack: DestinationPlugin {
     public var analytics: Analytics? = nil
     
     private var optimizelySettings: OptimizelySettings?
-    
     private var optimizelyClient: OptimizelyClient!
     private var userContext: OptimizelyUserContext!
-    
     private var experimentationKey: String!
     
-    public init(sdkApiKey: String, experimentKey: String? = nil) {
-        optimizelyClient = OptimizelyClient(sdkKey: sdkApiKey, defaultLogLevel: .debug)
+    public init(optimizelyKey: String, experimentKey: String? = "") {
+        optimizelyClient = OptimizelyClient(sdkKey: optimizelyKey, defaultLogLevel: .debug)
         if let experimentKey = experimentKey {
             experimentationKey = experimentKey
         }
     }
     
     public func update(settings: Settings, type: UpdateType) {
-        // Skip if you have a singleton and don't want to keep updating via settings.
         guard type == .initial else { return }
         
         guard let tempSettings: OptimizelySettings = settings.integrationSettings(forPlugin: self) else { return }
@@ -88,7 +78,7 @@ public class OptimizelyFullStack: DestinationPlugin {
         
         if optimizelySettings?.listen == true {
             _ = notificationCenter.addDecisionNotificationListener(decisionListener: { (type, userId, attributes, decisionInfo) in
-                print("Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
+                self.analytics?.log(message: "Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
                 let properties: [String: Any] = ["type": type,
                                                  "userId": userId,
                                                  "attributes": attributes ?? [],
@@ -99,14 +89,13 @@ public class OptimizelyFullStack: DestinationPlugin {
         }
         
         _ = notificationCenter.addTrackNotificationListener(trackListener: { (eventKey, userId, attributes, eventTags, event) in
-            print("Received track notification: \(eventKey) \(userId) \(String(describing: attributes)) \(String(describing: eventTags)) \(event)")
+            self.analytics?.log(message: "Received track notification: \(eventKey) \(userId) \(String(describing: attributes)) \(String(describing: eventTags)) \(event)")
         })
         
         _ = notificationCenter.addDatafileChangeNotificationListener(datafileListener: { _ in
-            print("Datafile changed")
-            
+            self.analytics?.log(message: "Datafile changed")
             if let optConfig = try? self.optimizelyClient.getOptimizelyConfig() {
-                print("[OptimizelyConfig] revision = \(optConfig.revision)")
+                self.analytics?.log(message: "[OptimizelyConfig] revision = \(optConfig.revision)")
             }
         })
     }
@@ -126,17 +115,19 @@ public class OptimizelyFullStack: DestinationPlugin {
         var userId = event.userId
         
         if userId == nil && (trackKnownUsers != nil && trackKnownUsers == true) {
-            print("Segment will only track users associated with a userId when the trackKnownUsers setting is enabled.")
+            analytics?.log(message: "Segment will only track users associated with a userId when the trackKnownUsers setting is enabled.")
         }
         
         if trackKnownUsers == false {
             userId = event.anonymousId
         }
         
-        if let userID = userId{
+        if let userID = userId {
+            //create user context and then call track
             userContext = optimizelyClient.createUserContext(userId: userID)
             trackUser(trackEvent: event)
             
+            //To prevent loop of calling decide method, we are restricting it by below condition
             if event.event != "Experiment Viewed" {
                 _ = userContext.decide(key: experimentationKey)
             }            
@@ -151,17 +142,17 @@ public class OptimizelyFullStack: DestinationPlugin {
             do {
                 try userContext.trackEvent(eventKey: trackEvent.event,
                                            eventTags: eventTags)
-                print("Tracked with eventTags!", eventTags)
+                analytics?.log(message: "Tracked with eventTags - \(eventTags)")
             } catch {
-                print(error)
+                analytics?.log(message: "Error - \(error)")
             }
         }
         else {
             do {
                 try userContext.trackEvent(eventKey: trackEvent.event)
-                print("Tracked with Event Only!")
+                analytics?.log(message: "Tracked with event Only!")
             } catch {
-                print(error)
+                analytics?.log(message: "Error - \(error)")
             }
         }
     }
