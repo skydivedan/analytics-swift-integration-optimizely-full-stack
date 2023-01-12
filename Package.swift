@@ -26,7 +26,7 @@ let package = Package(
             from: "1.1.2"
         ),
         .package(
-            name: "OptimizelySwiftSDK",
+            name: "Optimizely",
             url: "https://github.com/optimizely/swift-sdk.git",
             from: "3.10.1"
         )
@@ -38,7 +38,7 @@ let package = Package(
             name: "SegmentOptimizelyFullStack",
             dependencies: ["Segment", .product(
                 name: "Optimizely",
-                package: "OptimizelySwiftSDK")]),
+                package: "Optimizely")]),
         
         // TESTS ARE HANDLED VIA THE EXAMPLE APP.
     ]
