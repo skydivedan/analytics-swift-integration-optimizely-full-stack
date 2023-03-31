@@ -56,7 +56,7 @@ then
 	exit 1
 fi
 
-versionFile="./sources/SegmentDestination/Version.swift"
+versionFile="./sources/SegmentOptimizelyFullStack/Version.swift"
 
 # get last line in version.swift
 versionLine=$(tail -n 1 $versionFile)
@@ -109,7 +109,7 @@ tempFile=$(mktemp)
 #write changelog to temp file.
 echo -e "$changelog" >> $tempFile
 
-# update sources/SegmentDestination/Version.swift
+# update sources/SegmentOptimizelyFullStack/Version.swift
 # - remove last line...
 sed -i '' -e '$ d' $versionFile
 # - add new line w/ new version
