@@ -84,7 +84,7 @@ public class OptimizelyFullStack: DestinationPlugin {
                                                  "attributes": attributes ?? OptimizelyAttributes(),
                                                  "decisionInfo": decisionInfo]
                 
-                self.analytics?.track(name: "Experiment Viewed", properties: properties)
+                self.analytics?.track(name: "Experiment Viewed", properties: properties as [String: Any])
             })
         }
         
