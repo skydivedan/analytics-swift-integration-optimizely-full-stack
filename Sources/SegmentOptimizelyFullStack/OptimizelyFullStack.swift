@@ -81,7 +81,7 @@ public class OptimizelyFullStack: DestinationPlugin {
                 self.analytics?.log(message: "Received decision notification: \(type) \(userId) \(String(describing: attributes)) \(decisionInfo)")
                 let properties: [String: Any] = ["type": type,
                                                  "userId": userId,
-                                                 "attributes": attributes ?? [],
+                                                 "attributes": attributes ?? OptimizelyAttributes(),
                                                  "decisionInfo": decisionInfo]
                 
                 self.analytics?.track(name: "Experiment Viewed", properties: properties)

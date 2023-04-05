@@ -21,12 +21,10 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
         .package(
-            name: "Segment",
             url: "https://github.com/segmentio/analytics-swift.git",
             from: "1.1.2"
         ),
         .package(
-            name: "Optimizely",
             url: "https://github.com/optimizely/swift-sdk.git",
             from: "3.10.1"
         )
@@ -36,9 +34,13 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "SegmentOptimizelyFullStack",
-            dependencies: ["Segment", .product(
-                name: "Optimizely",
-                package: "Optimizely")]),
+            dependencies: [
+                .product(
+                    name: "Segment",
+                    package: "analytics-swift"),
+                .product(
+                    name: "Optimizely",
+                    package: "swift-sdk")]),
         
         // TESTS ARE HANDLED VIA THE EXAMPLE APP.
     ]
